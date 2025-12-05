@@ -1,0 +1,8 @@
+{
+  "name": "AURA",
+  "description": "A next-generation voice-first home operating system using Gemini Live API with dynamic UI surfaces.",
+  "requestFramePermissions": [
+    "microphone",
+    "geolocation"
+  ]
+}
