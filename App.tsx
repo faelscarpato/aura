@@ -5,15 +5,43 @@ import { SurfaceManager } from './components/SurfaceManager';
 import { SettingsPanel } from './components/SettingsPanel';
 import { useGeminiLive } from './services/geminiLive';
 import { useAuraStore } from './store';
-import { Mic, MicOff, Power, Settings } from 'lucide-react';
+import { Mic, MicOff, Power, Settings, Database } from 'lucide-react';
+import { SmartFrameMode } from './components/SmartFrameMode';
+
+import { useIdleTimer } from './hooks/useIdleTimer';
 
 function App() {
   const { connect, disconnect, error } = useGeminiLive();
-  const { isConnected, isListening, toggleSettings, userProfile, billing, initializeLocation } = useAuraStore();
+  const {
+    isConnected,
+    isListening,
+    toggleSettings,
+    userProfile,
+    billing,
+    initializeLocation,
+    checkMemoryConnection,
+    syncMemory,
+    isMemorySynced
+  } = useAuraStore();
+
+  // Initialize Idle Timer (handles activity tracking and smart frame activation)
+  useIdleTimer(60_000, 1000);
 
   React.useEffect(() => {
     initializeLocation();
-  }, [initializeLocation]);
+    // Verifica conexão com Supabase ao iniciar
+    checkMemoryConnection();
+  }, [initializeLocation, checkMemoryConnection]);
+
+  // Sincronizador de Memória (a cada 2 minutos)
+  React.useEffect(() => {
+    const SYNC_INTERVAL = 120_000; // 2 minutos
+    const interval = window.setInterval(() => {
+      syncMemory();
+    }, SYNC_INTERVAL);
+
+    return () => window.clearInterval(interval);
+  }, [syncMemory]);
 
   const handleToggleConnection = () => {
     if (isConnected) {
@@ -24,22 +52,35 @@ function App() {
   };
 
   return (
-    <div className="relative w-full h-screen bg-white text-gray-900 overflow-hidden flex flex-col items-center justify-center selection:bg-cyan-500/30">
+    <div
+      className="relative w-full h-screen bg-white text-gray-900 overflow-hidden flex flex-col items-center justify-center selection:bg-cyan-500/30"
+    >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-500/5 via-white to-white pointer-events-none"></div>
+
+      <SmartFrameMode />
 
       <div className="absolute top-0 left-0 w-full p-8 flex justify-between items-center z-10">
         <div className="flex flex-col gap-1">
           <div className="flex flex-col">
             <h1 className="text-2xl font-light tracking-[0.2em] uppercase text-gray-800">
-                AURA <span className="text-blue-500 font-bold">OS</span>
+              AURA <span className="text-blue-500 font-bold">OS</span>
             </h1>
             <span className="text-xs text-gray-500 tracking-wider">
-                {billing.tier === 'free' ? 'Home Automation System v2.5 | Texto' : 'Home Automation System v2.5 | Voz ativa'}
+              {billing.tier === 'free' ? 'Home Automation System v2.5 | Texto' : 'Home Automation System v2.5 | Voz ativa'}
             </span>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
+          {/* Indicador de Memória */}
+          <div
+            className={`flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-full border transition-colors ${isMemorySynced ? 'text-green-600 border-green-200 bg-green-50' : 'text-gray-400 border-gray-200 bg-gray-50'}`}
+            title={isMemorySynced ? "Memória Sincronizada" : "Memória Local"}
+          >
+            <Database className="w-3 h-3" />
+            <span className="hidden sm:inline">{isMemorySynced ? "SYNC" : "LOCAL"}</span>
+          </div>
+
           <button
             onClick={() => toggleSettings(true)}
             className="p-3 rounded-full bg-black/5 hover:bg-black/10 text-gray-600 transition-colors border border-black/5 relative group"
@@ -52,11 +93,10 @@ function App() {
           <button
             onClick={handleToggleConnection}
             className={`flex items-center gap-3 px-6 py-2 rounded-full border transition-all duration-300 backdrop-blur-md
-                ${
-                  isConnected
-                    ? 'bg-red-500/10 border-red-500/30 text-red-500 hover:bg-red-500/20'
-                    : 'bg-blue-500/10 border-blue-500/30 text-blue-500 hover:bg-blue-500/20'
-                }`}
+                ${isConnected
+                ? 'bg-red-500/10 border-red-500/30 text-red-500 hover:bg-red-500/20'
+                : 'bg-blue-500/10 border-blue-500/30 text-blue-500 hover:bg-blue-500/20'
+              }`}
           >
             <Power className="w-4 h-4" />
             <span className="text-sm font-medium tracking-wide">{isConnected ? 'DISCONNECT' : 'INITIALIZE'}</span>

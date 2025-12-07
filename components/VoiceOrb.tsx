@@ -1,8 +1,25 @@
+
 import * as React from 'react';
 import { useAuraStore } from '../store';
 
 export const VoiceOrb: React.FC = () => {
-  const { isConnected, isSpeaking, isListening } = useAuraStore();
+  const { isConnected, isSpeaking, isListening, emotion } = useAuraStore();
+
+  const getEmotionStyle = () => {
+    switch (emotion) {
+      case 'happy':
+        return 'border-amber-300 shadow-[0_0_50px_rgba(251,191,36,0.5)]';
+      case 'stressed':
+        return 'border-red-300 shadow-[0_0_50px_rgba(248,113,113,0.5)]';
+      case 'sad':
+        return 'border-indigo-300 shadow-[0_0_50px_rgba(129,140,248,0.5)]';
+      case 'calm':
+        return 'border-emerald-300 shadow-[0_0_50px_rgba(52,211,153,0.5)]';
+      case 'neutral':
+      default:
+        return 'border-blue-300 shadow-[0_0_40px_rgba(59,130,246,0.4)]';
+    }
+  };
 
   const getOrbStyle = () => {
     if (!isConnected) return "border-gray-300 opacity-20 scale-90 grayscale shadow-none";
@@ -15,7 +32,7 @@ export const VoiceOrb: React.FC = () => {
         return "border-purple-400 shadow-[0_0_60px_rgba(192,132,252,0.5)] scale-100";
     }
 
-    return "border-blue-500/50 shadow-[0_0_40px_rgba(59,130,246,0.3)] animate-pulse-slow";
+    return `${getEmotionStyle()} scale-100`;
   };
 
   const getCoreColor = () => {

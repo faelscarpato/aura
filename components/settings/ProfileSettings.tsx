@@ -3,7 +3,7 @@ import * as React from 'react';
 import { useAuraStore } from '../../store';
 
 export const ProfileSettings: React.FC = () => {
-  const { userProfile, setUserProfile, setVoice, manualLocation, setManualLocation, loadWeather } = useAuraStore();
+  const { userProfile, setUserProfile, setVoice, manualLocation, setManualLocation } = useAuraStore();
   const [status, setStatus] = React.useState<string | null>(null);
   const [form, setForm] = React.useState({
     fullName: userProfile?.fullName || 'Usuário',
@@ -38,9 +38,6 @@ export const ProfileSettings: React.FC = () => {
     setUserProfile(payload);
     setVoice({ locale: payload.language });
     setManualLocation(form.location || null);
-    
-    // Trigger a weather reload with the new location settings
-    loadWeather();
 
     setStatus('Perfil salvo localmente.');
   };
@@ -88,7 +85,7 @@ export const ProfileSettings: React.FC = () => {
           <input
             className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-gray-800 focus:border-blue-500 outline-none"
             value={form.location}
-            onChange={(e) => setForm((prev) => ({ ...prev, location: e.target.value }))}
+            onChange={(e) => setForm((prev: any) => ({ ...prev, location: e.target.value }))}
             placeholder="Ex: São Paulo, BR"
           />
           <span className="text-[10px] text-gray-400">Deixe vazio para usar GPS automático.</span>

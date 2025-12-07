@@ -27,7 +27,7 @@ const staticPath = path.join(__dirname, '../dist');
 const publicPath = path.join(__dirname, '../public');
 
 const searchApiKey = process.env.SEARCH_API_KEY;
-const newsApiKey = process.env.NEWS_API_KEY;
+const newsApiKey = process.env.NEWS_API_KEY || '8e79ec0c2bb3e53180f7b801cafd0181';
 // Use the provided key as fallback or env var
 const weatherApiKey = process.env.OPENWEATHER_API_KEY || process.env.WEATHER_API_KEY || 'df759af0fe252eac184917d8f056e3a8';
 
@@ -103,10 +103,10 @@ app.get('/api/news', async (req, res) => {
        ]);
     }
 
-    try {
+        try {
         const newsUrl = `https://gnews.io/api/v4/search?q=${encodeURIComponent(
             topic || 'destaques',
-        )}&lang=pt&token=${newsApiKey}`;
+        )}&lang=pt&max=6&apikey=${newsApiKey}`;
         const newsRes = await axios.get(newsUrl);
         const items = (newsRes.data?.articles || []).slice(0, 6).map((article, idx) => ({
             id: article.url || String(idx),

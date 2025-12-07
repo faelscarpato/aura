@@ -5,11 +5,28 @@ export enum SurfaceType {
   AGENDA = 'AGENDA',
   TASKS = 'TASKS',
   NEWS = 'NEWS',
-  WEATHER = 'WEATHER',
+  EDITOR = 'EDITOR',
+  VISION = 'VISION',
 }
 
 export type VoiceGender = 'female' | 'male' | 'neutral';
 export type VoiceStyle = 'casual' | 'formal' | 'focused' | 'empathetic';
+
+export type AuraEmotion = 'neutral' | 'happy' | 'stressed' | 'sad' | 'calm';
+
+export type AuraDocType =
+  | 'memo'
+  | 'letter'
+  | 'analysis'
+  | 'petition'
+  | 'resume'
+  | 'generic';
+
+export interface AuraDocumentDraft {
+  title: string;
+  content: string;
+  docType: AuraDocType;
+}
 
 export interface ShoppingItem {
   id: string;
@@ -43,42 +60,6 @@ export interface NewsItem {
   imageUrl: string;
   summary: string;
   url?: string;
-}
-
-// Novos tipos para Clima
-export interface WeatherCondition {
-  main: string; // 'Clear', 'Clouds', 'Rain', etc.
-  description: string;
-  icon: string;
-}
-
-export interface CurrentWeather {
-  temp: number;
-  feels_like: number;
-  humidity: number;
-  wind_speed: number;
-  condition: WeatherCondition;
-}
-
-export interface HourlyForecast {
-  time: string; // HH:00
-  temp: number;
-  condition: WeatherCondition;
-}
-
-export interface DailyForecast {
-  day: string; // 'Seg', 'Ter'...
-  min: number;
-  max: number;
-  condition: WeatherCondition;
-}
-
-export interface WeatherInfo {
-  location: string;
-  current: CurrentWeather;
-  hourly: HourlyForecast[];
-  daily: DailyForecast[];
-  updatedAt: string;
 }
 
 export interface UserProfile {
@@ -128,6 +109,8 @@ export interface BillingStatus {
   usingPlatformVoice: boolean;
 }
 
+export type VisionMode = 'image' | 'video' | 'live';
+
 export interface AuraState {
   isConnected: boolean;
   isSpeaking: boolean;
@@ -137,7 +120,6 @@ export interface AuraState {
   agenda: AgendaItem[];
   tasks: Task[];
   news: NewsItem[];
-  weather: WeatherInfo | null; // Novo estado
   transcript: { role: 'user' | 'model'; text: string }[];
   userProfile: UserProfile | null;
   voice: VoiceSettings;
@@ -150,6 +132,24 @@ export interface AuraState {
   newsTopic?: string | null;
   location: { latitude: number; longitude: number; } | null;
   manualLocation: string | null;
+
+  emotion: AuraEmotion;
+  isSmartFrameActive: boolean;
+  lastActivityAt: number | null;
+
+  // Memory Control
+  hasUnsavedChanges: boolean;
+  lastSavedAt: string | null;
+  isMemorySynced: boolean;
+
+  currentDocument: AuraDocumentDraft | null;
+
+  // Vision State
+  visionMode: VisionMode;
+  visionFile: File | null;
+  visionAnalysisResult: string | null;
+  isVisionAnalyzing: boolean;
+  liveSession: any | null;
   
   // Actions
   setConnected: (connected: boolean) => void;
@@ -160,8 +160,6 @@ export interface AuraState {
   setAgenda: (items: AgendaItem[]) => void;
   setTasks: (items: Task[]) => void;
   setNews: (items: NewsItem[], topic?: string | null) => void;
-  setWeather: (data: WeatherInfo) => void; // Nova ação
-  loadWeather: () => Promise<void>; // Nova ação
   setLocation: (location: { latitude: number; longitude: number; } | null) => void;
   setManualLocation: (location: string | null) => void;
   initializeLocation: () => void;
@@ -186,4 +184,40 @@ export interface AuraState {
   toggleSettings: (isOpen: boolean) => void;
   setUserApiKey: (key: string | null) => void;
   setAnalyserNode: (node: AnalyserNode | null) => void;
+
+  setEmotion: (emotion: AuraEmotion) => void;
+  setSmartFrameActive: (active: boolean) => void;
+  registerActivity: () => void;
+  syncMemory: () => Promise<void>;
+  checkMemoryConnection: () => Promise<boolean>;
+
+  setCurrentDocument: (doc: AuraDocumentDraft | null) => void;
+  openEmptyEditor: (docType?: AuraDocType) => void;
+
+  // Vision Actions
+  openVisionSurface: (mode: VisionMode) => void;
+  setVisionFile: (file: File | null) => void;
+  analyzeVisionFile: () => Promise<void>;
+  clearVision: () => void;
+  sendVisionFrame: (base64Frame: string) => void;
+  setLiveSession: (session: any | null) => void;
+}
+
+// AI Tool Argument Interfaces
+export interface UpdateSurfaceArgs {
+  surface: 'SHOPPING' | 'AGENDA' | 'TASKS' | 'NEWS' | 'EDITOR' | 'VISION' | 'NONE';
+}
+
+export interface AddShoppingItemArgs {
+  item: string;
+}
+
+export interface GetNewsArgs {
+  topic?: string;
+}
+
+export interface CreateDocumentArgs {
+  docType: AuraDocType;
+  title?: string;
+  initialContent?: string;
 }
